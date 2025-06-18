@@ -60,9 +60,9 @@ class FileExtractorApp:
         self.master = master
         # Define theme bg colors early
         self.light_theme = 'arc'
-        self.dark_theme = 'equilux' # Or another chosen dark theme
+        self.dark_theme = 'itft1' # Changed from equilux
         self.light_bg_color = '#F0F0F0'
-        self.dark_bg_color = '#2E2E2E'
+        self.dark_bg_color = '#2E2E2E' # This dark bg might need adjustment for itft1
 
         # Apply initial background color based on loaded theme
         # Ensure settings are loaded before this
