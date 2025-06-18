@@ -200,36 +200,69 @@ class FileExtractorApp:
         save_settings(self.settings)
 
         try:
-            # Get the style object associated with the master window
             style = ttk.Style(self.master)
+            # It's important that style.theme_use() is called BEFORE attempting to configure
+            # Ttk widgets with new colors, as the theme provides the base styling.
             style.theme_use(new_theme)
 
-            if new_theme == self.light_theme:
-                self.master.configure(background=self.light_bg_color)
-            else:
-                self.master.configure(background=self.dark_bg_color)
+            if new_theme == self.dark_theme: # 'itft1'
+                # Configure master window background
+                self.master.configure(background=self.dark_bg_color) # self.dark_bg_color is '#2E2E2E'
 
-            # Forcing an update of the widgets might be necessary
-            # to ensure all visual elements refresh with the new theme.
+                # Define colors for dark theme 'itft1'
+                button_bg = '#404040'
+                text_fg = 'white'
+                entry_bg = '#3c3c3c'
+                treeview_heading_bg = '#505050'
+                # Use a specific background for Treeview if self.dark_bg_color isn't quite right from the theme
+                treeview_bg = self.dark_bg_color
+
+                # Configure styles
+                style.configure('TLabel', background=self.dark_bg_color, foreground=text_fg)
+                style.configure('TButton', background=button_bg, foreground=text_fg)
+                style.configure('Large.TButton', font=('Arial', 12, 'bold'), padding=(10, 8), background=button_bg, foreground=text_fg)
+                style.configure('TFrame', background=self.dark_bg_color)
+                style.configure('TCheckbutton', background=self.dark_bg_color, foreground=text_fg, indicatorcolor=text_fg, selectcolor=button_bg)
+                style.configure('TEntry', fieldbackground=entry_bg, foreground=text_fg, insertcolor=text_fg)
+                style.configure('Treeview', background=treeview_bg, fieldbackground=treeview_bg, foreground=text_fg)
+                style.map('Treeview', background=[('selected', button_bg)], foreground=[('selected', text_fg)])
+                style.configure('Treeview.Heading', background=treeview_heading_bg, foreground=text_fg, relief='flat')
+                style.map('Treeview.Heading', relief=[('active', 'groove'), ('pressed', 'sunken')])
+
+
+            else: # new_theme == self.light_theme ('arc')
+                self.master.configure(background=self.light_bg_color)
+
+                # Revert styles to allow 'arc' theme to take full control.
+                # For 'arc', we generally want to remove our specific dark theme overrides.
+                # The most straightforward way to "revert" is to re-apply the original 'arc' styles
+                # or configure with empty/default values that the 'arc' theme would then populate.
+                # However, simply calling style.theme_use('arc') should reset most things.
+                # We only need to explicitly re-configure styles that 'arc' might not fully reset
+                # or that had specific properties not typically part of a theme switch (like our custom Large.TButton font/padding).
+
+                # Re-apply base style configurations that should persist across themes (like fonts/padding if not themed)
+                # The 'arc' theme should handle its own colors. We clear our specific overrides.
+                style.configure('TLabel', background='', foreground='')
+                style.configure('TButton', background='', foreground='')
+                # For Large.TButton, ensure font/padding are as originally defined for 'arc', and clear colors.
+                style.configure('Large.TButton', font=('Arial', 12, 'bold'), padding=(10, 8), background='', foreground='')
+                style.configure('TFrame', background='')
+                style.configure('TCheckbutton', background='', foreground='', indicatorcolor='', selectcolor='')
+                style.configure('TEntry', fieldbackground='', foreground='', insertcolor='')
+                style.configure('Treeview', background='', fieldbackground='', foreground='')
+                style.map('Treeview', background=[], foreground=[])
+                style.configure('Treeview.Heading', background='', foreground='', relief='flat')
+                style.map('Treeview.Heading', relief=[])
+
+
             self.master.update_idletasks()
 
-            # Optionally, re-apply specific styles if some widgets don't update automatically.
-            # (Keeping the previous style configurations commented out for now,
-            # as theme_use should handle most of it)
-            # style.configure('.', font=('Arial', 10))
-            # ... (other style.configure lines) ...
-
-            # If the theme change is successful, we might want to update the
-            # theme toggle button text to reflect the current state, e.g.,
-            # "Switch to Dark Theme" or "Switch to Light Theme".
-            # For now, keeping it simple.
-
         except Exception as e:
-            print(f"Error switching theme with style.theme_use(): {e}")
-            # Fallback: Inform user a restart is needed if dynamic switch fails
+            print(f"Error switching theme or configuring styles: {e}")
             messagebox.showerror(
                 "Theme Switch Info",
-                f"Theme set to {new_theme}. Please restart the application for the theme to fully apply."
+                f"Theme set to {new_theme}. If visual glitches occur, please restart the application."
             )
 
     def open_options_window(self):
