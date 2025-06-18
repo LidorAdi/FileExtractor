@@ -1,6 +1,7 @@
 import tkinter as tk
 from tkinter import ttk, messagebox
 from tkinter.scrolledtext import ScrolledText
+from ttkthemes import ThemedTk
 import os
 import shutil
 import pyperclip
@@ -81,14 +82,14 @@ class FileExtractorApp:
         self.folder_name_entry = ttk.Entry(master, width=30, textvariable=self.folder_name_var , font=("Arial", 16))
         self.folder_name_entry.focus()
         self.folder_name_entry.selection_range(0, tk.END)
-        self.folder_name_entry.pack()
+        self.folder_name_entry.pack(padx=20)
         clipboard_text = pyperclip.paste()
         if "6-000" in clipboard_text:
             self.folder_name_var.set(clipboard_text)
             self.folder_name_entry.focus()
             self.folder_name_entry.selection_range(0, tk.END)
         self.label = ttk.Label(master, text="Select Files:", font=("Arial", 12))
-        self.label.pack(pady=10)
+        self.label.pack(pady=10, padx=20)
 
         # Create Treeview with organized columns
         columns = ('name', 'date', 'size', 'type')
@@ -125,12 +126,12 @@ class FileExtractorApp:
 
             self.tree.insert('', 'end', values=(file, formatted_date, file_size, file_type))
 
-        self.process_button = ttk.Button(master, text="Create Folder", command=self.process_files)
-        self.process_button.pack(pady=(15, 20), ipadx=10, ipady=8)
+        self.process_button = ttk.Button(master, text="Create Folder", command=self.process_files, style='Large.TButton')
+        self.process_button.pack(pady=(15, 20))
 
         # Create a horizontal frame for both checkboxes
         options_frame = ttk.Frame(master)
-        options_frame.pack(pady=5)
+        options_frame.pack(pady=5, padx=20)
 
         # Use date subfolder checkbox (left side)
         self.use_date_subfolder_var = tk.BooleanVar()
@@ -159,7 +160,7 @@ class FileExtractorApp:
         master.bind('<Return>', lambda event: self.process_files())
 
         refresh_button = ttk.Button(master, text="Refresh", command=self.refresh_file_list)
-        refresh_button.pack(pady=(5, 10))
+        refresh_button.pack(pady=(5, 10), padx=20)
 
         footer = ttk.Label(master, text="Made by Lidor Adi", font=("Arial", 8), foreground="gray")
         footer.pack(side='bottom', pady=(5, 2))
@@ -172,19 +173,19 @@ class FileExtractorApp:
         win.iconbitmap(icon_path)
 
         # Labels and Entry fields
-        tk.Label(win, text="Source Directory:").pack(anchor='w')
+        ttk.Label(win, text="Source Directory:").pack(anchor='w', padx=10, pady=(5, 0))
         source_entry = ttk.Entry(win, width=80)
-        source_entry.pack()
+        source_entry.pack(fill='x', expand=True, padx=10, pady=(0, 5))
         source_entry.insert(0, self.settings["source_dir"])
 
-        tk.Label(win, text="Output Directory:").pack(anchor='w')
+        ttk.Label(win, text="Output Directory:").pack(anchor='w', padx=10, pady=(5, 0))
         output_entry = ttk.Entry(win, width=80)
-        output_entry.pack()
+        output_entry.pack(fill='x', expand=True, padx=10, pady=(0, 5))
         output_entry.insert(0, self.settings["output_dir"])
 
-        tk.Label(win, text="Processed Directory:").pack(anchor='w')
+        ttk.Label(win, text="Processed Directory:").pack(anchor='w', padx=10, pady=(5, 0))
         processed_entry = ttk.Entry(win, width=80)
-        processed_entry.pack()
+        processed_entry.pack(fill='x', expand=True, padx=10, pady=(0, 5))
         processed_entry.insert(0, self.settings["processed_dir"])
 
         # Save button
@@ -304,6 +305,28 @@ class FileExtractorApp:
 
             self.tree.insert('', 'end', values=(file, formatted_date, file_size, file_type))
 if __name__ == "__main__":
-    root = tk.Tk()
+    root = ThemedTk(theme="arc")
+    # Theme is now set by ThemedTk, previous 'clam' theme is replaced.
+    style = ttk.Style(root)
+    # style.theme_use('clam') # No longer needed, theme is set by ThemedTk
+
+    # --- Global Style Configurations ---
+    style.configure('.', font=('Arial', 10)) # Default font for all ttk widgets
+
+    # Specific widget type configurations
+    style.configure('TLabel', font=('Arial', 10)) # Base for labels
+    style.configure('TButton', font=('Arial', 10), padding=(5, 5))
+    style.configure('TEntry', font=('Arial', 10), padding=(5, 5))
+    style.configure('TCheckbutton', font=('Arial', 10), padding=(5, 5))
+
+    # Treeview specific styles
+    style.configure('Treeview.Heading', font=('Arial', 10, 'bold'))
+    style.configure('Treeview', font=('Arial', 10), rowheight=25) # Font for items, and row height
+
+    # Custom style for larger buttons (like the process button)
+    style.configure('Large.TButton', font=('Arial', 12, 'bold'), padding=(10, 8))
+
+    # --- End Global Style Configurations ---
+
     app = FileExtractorApp(root)
     root.mainloop()
