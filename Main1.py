@@ -58,14 +58,26 @@ def load_settings():
 class FileExtractorApp:
     def __init__(self, master, settings):  # Added settings parameter
         self.master = master
+        # Define theme bg colors early
+        self.light_theme = 'arc'
+        self.dark_theme = 'itft1' # Changed from equilux
+        self.light_bg_color = '#F0F0F0'
+        self.dark_bg_color = '#2E2E2E' # This dark bg might need adjustment for itft1
+
+        # Apply initial background color based on loaded theme
+        # Ensure settings are loaded before this
+        self.settings = settings
+        current_theme = self.settings.get('theme', self.light_theme)
+        if current_theme == self.light_theme:
+            master.configure(background=self.light_bg_color)
+        else:
+            master.configure(background=self.dark_bg_color)
+
         master.title("File Extractor")
         master.geometry('950x700')
         icon_path = resource_path('resources/icon.ico')
         master.iconbitmap(icon_path)
-        # Load settings FIRST
-        self.settings = settings  # Use passed settings
-        self.light_theme = 'arc'
-        self.dark_theme = 'equilux' # Or any other ttktheme dark theme
+        # Load settings FIRST (self.settings is already set above)
 
         # Top frame for buttons
         top_button_frame = ttk.Frame(master)
@@ -191,6 +203,11 @@ class FileExtractorApp:
             # Get the style object associated with the master window
             style = ttk.Style(self.master)
             style.theme_use(new_theme)
+
+            if new_theme == self.light_theme:
+                self.master.configure(background=self.light_bg_color)
+            else:
+                self.master.configure(background=self.dark_bg_color)
 
             # Forcing an update of the widgets might be necessary
             # to ensure all visual elements refresh with the new theme.
