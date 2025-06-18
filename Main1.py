@@ -28,13 +28,14 @@ def resource_path(relative_path):
     try:
         base_path = sys._MEIPASS
     except AttributeError:
-        base_path = os.path.abspath(".")
+        base_path = os.path.dirname(os.path.abspath(__file__))
     return os.path.join(base_path, relative_path)
 def load_settings():
     default_settings = {
         "source_dir": "",
         "output_dir": "",
-        "processed_dir": ""
+        "processed_dir": "",
+        "theme": "arc"  # Added theme to default settings
     }
 
     settings_path = os.path.join(os.path.dirname(sys.executable if getattr(sys, 'frozen', False) else __file__), "settings.json")
@@ -42,7 +43,10 @@ def load_settings():
     if os.path.exists(settings_path):
         try:
             with open(settings_path, "r") as f:
-                return json.load(f)
+                settings = json.load(f)
+                if 'theme' not in settings:  # Ensure theme exists
+                    settings['theme'] = default_settings['theme']
+                return settings
         except:
             pass  # corrupted or invalid JSON
 
@@ -52,18 +56,26 @@ def load_settings():
 
     return default_settings
 class FileExtractorApp:
-    def __init__(self, master):
+    def __init__(self, master, settings):  # Added settings parameter
         self.master = master
         master.title("File Extractor")
-        master.geometry('800x600')
+        master.geometry('950x700')
         icon_path = resource_path('resources/icon.ico')
         master.iconbitmap(icon_path)
         # Load settings FIRST
-        self.settings = load_settings()
+        self.settings = settings  # Use passed settings
+        self.light_theme = 'arc'
+        self.dark_theme = 'equilux' # Or any other ttktheme dark theme
 
-        # Edit Paths button at the top-left
-        options_button = ttk.Button(master, text="Edit Paths", command=self.open_options_window)
-        options_button.pack(anchor='w', padx=10, pady=(10, 0))
+        # Top frame for buttons
+        top_button_frame = ttk.Frame(master)
+        top_button_frame.pack(anchor='w', padx=10, pady=(10, 0), fill='x')
+
+        options_button = ttk.Button(top_button_frame, text="Edit Paths", command=self.open_options_window)
+        options_button.pack(side='left', anchor='w')
+
+        self.theme_toggle_button = ttk.Button(top_button_frame, text="Toggle Theme", command=self.toggle_theme)
+        self.theme_toggle_button.pack(side='left', anchor='w', padx=(5,0))
 
         # Title label centered below the button
         title_label = ttk.Label(master, text="Service Request", font=("Arial", 18, "bold"))
@@ -164,6 +176,24 @@ class FileExtractorApp:
 
         footer = ttk.Label(master, text="Made by Lidor Adi", font=("Arial", 8), foreground="gray")
         footer.pack(side='bottom', pady=(5, 2))
+
+    def toggle_theme(self):
+        current_theme = self.settings.get('theme', self.light_theme)
+        if current_theme == self.light_theme:
+            new_theme = self.dark_theme
+        else:
+            new_theme = self.light_theme
+
+        self.settings['theme'] = new_theme
+        save_settings(self.settings)
+
+        try:
+            self.master.tk.call("set_theme", new_theme)
+            # Optional: Force UI refresh if needed, for now, this is often enough.
+            # self.master.update_idletasks()
+        except Exception as e:
+            print(f"Error switching theme: {e}")
+            messagebox.showerror("Theme Error", f"Could not switch theme to {new_theme}. Error: {e}")
 
     def open_options_window(self):
         win = tk.Toplevel(self.master)
@@ -305,7 +335,8 @@ class FileExtractorApp:
 
             self.tree.insert('', 'end', values=(file, formatted_date, file_size, file_type))
 if __name__ == "__main__":
-    root = ThemedTk(theme="arc")
+    settings = load_settings()  # Load settings before ThemedTk
+    root = ThemedTk(theme=settings.get("theme", "arc"))  # Use loaded theme
     # Theme is now set by ThemedTk, previous 'clam' theme is replaced.
     style = ttk.Style(root)
     # style.theme_use('clam') # No longer needed, theme is set by ThemedTk
@@ -328,5 +359,5 @@ if __name__ == "__main__":
 
     # --- End Global Style Configurations ---
 
-    app = FileExtractorApp(root)
+    app = FileExtractorApp(root, settings)  # Pass settings to app
     root.mainloop()
