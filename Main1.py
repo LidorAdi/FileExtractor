@@ -188,12 +188,32 @@ class FileExtractorApp:
         save_settings(self.settings)
 
         try:
-            self.master.tk.call("set_theme", new_theme)
-            # Optional: Force UI refresh if needed, for now, this is often enough.
-            # self.master.update_idletasks()
+            # Get the style object associated with the master window
+            style = ttk.Style(self.master)
+            style.theme_use(new_theme)
+
+            # Forcing an update of the widgets might be necessary
+            # to ensure all visual elements refresh with the new theme.
+            self.master.update_idletasks()
+
+            # Optionally, re-apply specific styles if some widgets don't update automatically.
+            # (Keeping the previous style configurations commented out for now,
+            # as theme_use should handle most of it)
+            # style.configure('.', font=('Arial', 10))
+            # ... (other style.configure lines) ...
+
+            # If the theme change is successful, we might want to update the
+            # theme toggle button text to reflect the current state, e.g.,
+            # "Switch to Dark Theme" or "Switch to Light Theme".
+            # For now, keeping it simple.
+
         except Exception as e:
-            print(f"Error switching theme: {e}")
-            messagebox.showerror("Theme Error", f"Could not switch theme to {new_theme}. Error: {e}")
+            print(f"Error switching theme with style.theme_use(): {e}")
+            # Fallback: Inform user a restart is needed if dynamic switch fails
+            messagebox.showerror(
+                "Theme Switch Info",
+                f"Theme set to {new_theme}. Please restart the application for the theme to fully apply."
+            )
 
     def open_options_window(self):
         win = tk.Toplevel(self.master)
